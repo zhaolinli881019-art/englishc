@@ -59,12 +59,12 @@ export function App(){
   const chosen=characters[selected];
   const go=(s:Screen)=>setScreen(s);
   return <main className="stage"><section className="phone">
-    {screen==="home"&&<Home mode={mode} setMode={setMode} go={go} importedWords={importedWords} sessions={sessions} selectDay={(day)=>{const date=`2026-08-${String(day).padStart(2,"0")}`;setActiveWords(importedWords.filter(w=>w.date===date));setQuestion(1);setRound(1);setAnswer("");setAttempts([]);setReviewOnly(false);go("character")}} onFile={(words,name)=>{setPendingWords(words);setFileName(name);setImportError("");go("import")}} importError={importError} setImportError={setImportError}/>} 
-    {screen==="import"&&<Import allocation={allocation} setAllocation={setAllocation} go={go} words={pendingWords} fileName={fileName} confirm={(words)=>{setImportedWords(words);setImportError("");go("home")}}/>} 
-    {screen==="character"&&<Characters selected={selected} setSelected={setSelected} go={go}/>} 
-    {screen==="quiz"&&<Quiz mode={mode} chosen={chosen} answer={answer} setAnswer={setAnswer} question={question} setQuestion={setQuestion} go={go} reviewOnly={reviewOnly} round={round} words={activeWords} attempts={attempts} setAttempts={setAttempts}/>} 
-    {screen==="result"&&<Result chosen={chosen} mode={mode} go={go} round={round} attempts={attempts} done={()=>{const date=attempts[0]?.date??"2026-08-12";setSessions(current=>[{id:Date.now(),mode,character:chosen,attempts:[...attempts],date},...current]);go("journal")}} retry={()=>{const missed=attempts.filter(a=>a.round===1&&a.status!=="correct").map(({en,zh,date})=>({en,zh,date}));setActiveWords(missed);setRound(r=>r+1);setReviewOnly(true);setQuestion(1);setAnswer("");go("quiz")}}/>} 
-    {screen==="journal"&&<Journal go={go} sessions={sessions}/>} 
+    {screen==="home"&&<Home mode={mode} setMode={setMode} go={go} importedWords={importedWords} sessions={sessions} selectDay={(day)=>{const date=`2026-08-${String(day).padStart(2,"0")}`;setActiveWords(importedWords.filter(w=>w.date===date));setQuestion(1);setRound(1);setAnswer("");setAttempts([]);setReviewOnly(false);go("character")}} onFile={(words,name)=>{setPendingWords(words);setFileName(name);setImportError("");go("import")}} importError={importError} setImportError={setImportError}/>}
+    {screen==="import"&&<Import allocation={allocation} setAllocation={setAllocation} go={go} words={pendingWords} fileName={fileName} confirm={(words)=>{setImportedWords(words);setImportError("");go("home")}}/>}
+    {screen==="character"&&<Characters selected={selected} setSelected={setSelected} go={go}/>}
+    {screen==="quiz"&&<Quiz mode={mode} chosen={chosen} answer={answer} setAnswer={setAnswer} question={question} setQuestion={setQuestion} go={go} reviewOnly={reviewOnly} round={round} words={activeWords} attempts={attempts} setAttempts={setAttempts}/>}
+    {screen==="result"&&<Result chosen={chosen} mode={mode} go={go} round={round} attempts={attempts} done={()=>{const date=attempts[0]?.date??"2026-08-12";setSessions(current=>[{id:Date.now(),mode,character:chosen,attempts:[...attempts],date},...current]);go("journal")}} retry={()=>{const missed=attempts.filter(a=>a.round===round&&a.status!=="correct").map(({en,zh,date})=>({en,zh,date}));setActiveWords(missed);setRound(r=>r+1);setReviewOnly(true);setQuestion(1);setAnswer("");go("quiz")}}/>}
+    {screen==="journal"&&<Journal go={go} sessions={sessions}/>}
   </section></main>
 }
 
@@ -151,7 +151,7 @@ function Characters({selected,setSelected,go}:{selected:number;setSelected:(n:nu
 }
 
 function Quiz({mode,chosen,answer,setAnswer,question,setQuestion,go,reviewOnly,round,words,attempts,setAttempts}:{mode:Mode;chosen:Character;answer:string;setAnswer:(s:string)=>void;question:number;setQuestion:(n:number)=>void;go:(s:Screen)=>void;reviewOnly:boolean;round:number;words:ImportedWord[];attempts:Attempt[];setAttempts:(a:Attempt[])=>void}){
-  const quizWords=reviewOnly?words.slice(0,3):words;
+  const quizWords=words;
   const total=Math.max(quizWords.length,1); const current=quizWords[Math.min(question-1,quizWords.length-1)]??{en:"beautiful",zh:"美丽的",date:null};
   const [advancing,setAdvancing]=useState(false);
   const voiceRef=useRef<SpeechSynthesisVoice|null>(null);
