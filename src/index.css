@@ -7,3 +7,17 @@
 .empty-journal{text-align:center;color:#aaa;font-size:22px;margin-top:180px}
 .calendar button.future{color:#c9cccf}.calendar button.has-words{color:#55aa8a;font-weight:700}.calendar button.selected-day{background:#e8f5ef;border-radius:50%;box-shadow:inset 0 0 0 1px #b9ddce}.calendar button.today.selected-day{background:#e8f5ef}.start-area{height:66px;margin-top:16px;display:flex;flex-direction:column;align-items:center;justify-content:center}.start-area small{font-family:system-ui;color:#8a9992;font-size:11px;margin-bottom:6px}.start-area button{border:0;background:transparent;color:#52a688;font-size:25px;font-weight:700;padding:2px 22px;position:relative}.start-area button:after{content:"";position:absolute;left:22px;right:22px;bottom:0;border-bottom:2px solid #a8d5c3}.calendar button img{animation:characterPop .25s ease-out}@keyframes characterPop{from{opacity:0;transform:scale(.75)}to{opacity:1;transform:scale(1)}}
 .home-menu-toggle{border:0;background:transparent;display:flex;align-items:center;gap:2px;padding:8px}.home-menu-toggle svg:first-child{width:25px;height:25px}.home-menu-toggle svg:last-child{width:16px;height:16px}.mode{animation:menuIn .18s ease-out}@keyframes menuIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}.month{display:block;border:0;background:transparent;width:max-content;margin-left:auto;margin-right:auto}.month-overlay{position:fixed;z-index:20;inset:0;background:#1d252c66;backdrop-filter:blur(2px);display:grid;place-items:center;padding:32px}.month-picker{width:min(365px,92vw);background:#fff;border-radius:20px;padding:24px 24px 30px;box-shadow:0 22px 60px #0003;animation:pickerIn .2s ease-out}.month-picker header{display:flex;justify-content:center;align-items:center;gap:40px;margin-bottom:25px}.month-picker header button{border:0;background:transparent;font-family:system-ui;font-size:48px;line-height:1}.month-picker header b{font-size:27px}.month-picker>div{display:grid;grid-template-columns:repeat(4,1fr);gap:13px 10px}.month-picker>div button{border:0;background:transparent;border-radius:50%;aspect-ratio:1;display:grid;place-content:center}.month-picker>div button.selected{background:#f3f2f0}.month-picker>div b{font-size:19px;font-weight:400}.month-picker>div small{font-family:system-ui;color:#a7a9ad;font-size:12px;margin-top:2px}@keyframes pickerIn{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:none}}
+
+/* iOS supplies the real status bar. Keep the app within the visible iPhone
+   viewport and scroll only screens whose content can genuinely be long. */
+html,body,#root{width:100%;height:100%;min-height:0;overflow:hidden}
+body{overscroll-behavior:none}
+.stage{width:100%;height:100dvh;min-height:0;padding:0;overflow:hidden}
+.phone{width:min(430px,100vw);height:100dvh;max-height:100dvh;overflow:hidden}
+.page{height:100%;min-height:0;padding-top:max(12px,env(safe-area-inset-top));padding-bottom:max(12px,env(safe-area-inset-bottom));overflow:hidden}
+.home,.quiz{overflow:hidden}
+.import,.character,.result,.journal{overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch}
+.quiz{padding-bottom:max(18px,env(safe-area-inset-bottom))}
+.import-card{bottom:max(16px,calc(env(safe-area-inset-bottom) + 8px))}
+.result-actions{bottom:max(8px,env(safe-area-inset-bottom))}
+@media(min-width:451px){.stage{padding:18px}.phone{height:min(932px,calc(100dvh - 36px));max-height:calc(100dvh - 36px)}}

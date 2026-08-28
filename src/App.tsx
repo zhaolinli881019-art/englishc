@@ -62,7 +62,6 @@ export function App(){
   </section></main>
 }
 
-function Status(){return <div className="status"><b>16:38</b><span>▮▮▮　⌁　<b>91</b></span></div>}
 function IconButton({children,onClick,label}:{children:React.ReactNode,onClick:()=>void,label:string}){return <button className="icon" onClick={onClick} aria-label={label}>{children}</button>}
 
 function Home({mode,setMode,go,importedWords,sessions,selectDay,onFile,importError,setImportError}:{mode:Mode;setMode:(m:Mode)=>void;go:(s:Screen)=>void;importedWords:ImportedWord[];sessions:Session[];selectDay:(d:number)=>void;onFile:(w:ImportedWord[],name:string)=>void;importError:string;setImportError:(s:string)=>void}){
@@ -105,7 +104,7 @@ function Home({mode,setMode,go,importedWords,sessions,selectDay,onFile,importErr
   };
   const importedDays=new Set(availableDays);
   const completedByDay=new Map(sessions.filter(s=>s.date.startsWith(`${year}-${String(month+1).padStart(2,"0")}`)).map(s=>[Number(s.date.slice(-2)),s.character]));
-  return <div className="page home" onPointerDown={e=>{swipeStart.current=e.clientX}} onPointerUp={e=>{if(swipeStart.current!==null&&e.clientX-swipeStart.current>70)go("journal");swipeStart.current=null}}><Status/><div className="top"><button className="home-menu-toggle" onClick={()=>setMenuOpen(!menuOpen)} aria-expanded={menuOpen} aria-label={menuOpen?"Collapse test modes":"Expand test modes"}><House/>{menuOpen?<ChevronUp/>:<ChevronDown/>}</button><IconButton onClick={()=>{}} label="Settings"><Settings/></IconButton></div>
+  return <div className="page home" onPointerDown={e=>{swipeStart.current=e.clientX}} onPointerUp={e=>{if(swipeStart.current!==null&&e.clientX-swipeStart.current>70)go("journal");swipeStart.current=null}}><div className="top"><button className="home-menu-toggle" onClick={()=>setMenuOpen(!menuOpen)} aria-expanded={menuOpen} aria-label={menuOpen?"Collapse test modes":"Expand test modes"}><House/>{menuOpen?<ChevronUp/>:<ChevronDown/>}</button><IconButton onClick={()=>{}} label="Settings"><Settings/></IconButton></div>
     {menuOpen&&<div className="mode">{(["Dictation","C → E","E → C"] as Mode[]).map(m=><button className={mode===m?"on":""} onClick={()=>{setMode(m);setMenuOpen(false)}} key={m}>{m}</button>)}</div>}
     <button className="month" onClick={()=>setMonthPicker(true)}><small>{year}</small><h1>{months[month]==="SEP"?"SEPTEMBER":months[month]==="OCT"?"OCTOBER":months[month]==="NOV"?"NOVEMBER":months[month]==="DEC"?"DECEMBER":months[month]==="JAN"?"JANUARY":months[month]==="FEB"?"FEBRUARY":months[month]==="MAR"?"MARCH":months[month]==="APR"?"APRIL":months[month]==="JUN"?"JUNE":months[month]==="JUL"?"JULY":months[month]==="MAY"?"MAY":"AUGUST"}</h1></button>
     <div className="calendar">{calendarCells.map((d,index)=>d===null?<span className="calendar-blank" key={`blank-${index}`}/>:<button key={d} onClick={()=>importedDays.has(d)&&setSelectedDay(d)} className={`${d===today?"today":""} ${index%7===0?"sun":""} ${index%7===6?"sat":""} ${isCurrentMonth&&today!==null&&d>today&&!importedDays.has(d)?"future":""} ${importedDays.has(d)&&!completedByDay.has(d)?"has-words":""} ${selectedDay===d&&importedDays.has(d)?"selected-day":""}`}>
@@ -128,7 +127,7 @@ function Import({allocation,setAllocation,go,words,fileName,confirm}:{allocation
     const start=new Date("2026-08-12T00:00:00");
     return words.map((w,i)=>{if(w.date)return w;if(allocation==="today")return {...w,date:"2026-08-12"};const d=new Date(start);d.setDate(start.getDate()+Math.floor(i/10));return {...w,date:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}})
   };
-  return <div className="page import"><Status/><div className="nav"><IconButton onClick={()=>go("home")} label="Back"><ArrowLeft/></IconButton><h2>Confirm Import</h2><i/></div>
+  return <div className="page import"><div className="nav"><IconButton onClick={()=>go("home")} label="Back"><ArrowLeft/></IconButton><h2>Confirm Import</h2><i/></div>
     <img className="hero" src={hornet}/><h1>{words.length} Words Found</h1><p className="file-name">{fileName}</p>{undated.length>0&&<><h3>{undated.length} Undated Words</h3>
     <div className="segments"><button className={allocation==="today"?"on":""} onClick={()=>setAllocation("today")}>All Today</button><button className={allocation==="split"?"on":""} onClick={()=>setAllocation("split")}>Split by Day</button></div>
     {allocation==="split"&&<div className="split-row"><button>10 words / day</button><button>Starting Aug 12</button></div>}</>}
@@ -139,7 +138,7 @@ function Import({allocation,setAllocation,go,words,fileName,confirm}:{allocation
 }
 
 function Characters({selected,setSelected,go}:{selected:number;setSelected:(n:number)=>void;go:(s:Screen)=>void}){
-  return <div className="page character"><Status/><div className="top"><IconButton onClick={()=>go("home")} label="Close"><X/></IconButton><span>?</span></div><h1>Choose your character ✨</h1>
+  return <div className="page character"><div className="top"><IconButton onClick={()=>go("home")} label="Close"><X/></IconButton><span>?</span></div><h1>Choose your character ✨</h1>
     <div className="characters">{characters.map((c,i)=><button key={c.name} className={selected===i?"chosen":""} onClick={()=>setSelected(i)} aria-label={c.name}><img src={c.src}/>{selected===i&&<b>✓</b>}</button>)}</div>
     <button className="next" onClick={()=>go("quiz")}>→</button>
   </div>
@@ -184,7 +183,7 @@ function Quiz({mode,chosen,answer,setAnswer,question,setQuestion,go,reviewOnly,r
     speechSynthesis.cancel();
     window.setTimeout(()=>speechSynthesis.speak(utterance),60);
   };
-  return <div className="page quiz"><Status/><div className="quiz-head"><IconButton onClick={()=>go("home")} label="Close"><X/></IconButton><b>{question} / {total}</b><i/></div><div className="progress"><i style={{width:`${question/total*100}%`}}/></div>
+  return <div className="page quiz"><div className="quiz-head"><IconButton onClick={()=>go("home")} label="Close"><X/></IconButton><b>{question} / {total}</b><i/></div><div className="progress"><i style={{width:`${question/total*100}%`}}/></div>
     <h1>{prompt}</h1><div className="prompt-area">{mode==="Dictation"?<button className="sound" onClick={speak}><Volume2/></button>:<strong>{mode==="C → E"?current.zh:current.en}</strong>}<img src={chosen.src}/></div>
     {mode==="Dictation"&&<small>Tap to replay</small>}<div className="answer"><input autoFocus autoCapitalize="none" autoCorrect="off" spellCheck={false} inputMode={mode==="E → C"?"text":"latin"} value={answer} onChange={e=>setAnswer(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&answer.trim())submit(false)}} placeholder={mode==="E → C"?"Enter the Chinese meaning":"Type the English word"}/><i/></div>
     <div className="quiz-actions"><button disabled={advancing} onClick={()=>submit(true)}>I don’t know</button><button className="primary" disabled={!answer.trim()||advancing} onClick={()=>submit(false)}>Submit</button></div>
@@ -195,14 +194,14 @@ function Result({chosen,mode,go,retry,done,attempts,round}:{chosen:Character;mod
   const shown=attempts.filter(a=>a.round===round);
   const correct=shown.filter(a=>a.status==="correct").length, wrong=shown.filter(a=>a.status==="wrong").length, skipped=shown.filter(a=>a.status==="skip").length;
   const accuracy=shown.length?correct/shown.length*100:0;
-  return <div className="page result"><Status/><div className="nav"><IconButton onClick={()=>go("home")} label="Back"><ArrowLeft/></IconButton><h2>{mode} Result<small>Aug 12, 2026</small></h2><IconButton onClick={()=>go("journal")} label="Search"><Search/></IconButton></div>
+  return <div className="page result"><div className="nav"><IconButton onClick={()=>go("home")} label="Back"><ArrowLeft/></IconButton><h2>{mode} Result<small>Aug 12, 2026</small></h2><IconButton onClick={()=>go("journal")} label="Search"><Search/></IconButton></div>
     <div className="summary"><img src={chosen.src}/><p>{shown.length} words · {correct} correct · {wrong} wrong · {skipped} unanswered<br/>Accuracy　<strong>{accuracy.toFixed(1)}%</strong></p></div><h3>{round===1?"All Words":`Review Round ${round-1}`}</h3>
     <div className="word-list">{shown.map((w,i)=><div className="word" key={`${w.en}-${i}`}><b className={w.status}>{w.status==="correct"?"✓":w.status==="wrong"?"×":"−"}</b><p><strong>{i+1}. {w.en}</strong>{w.status==="correct"?<small>Correct</small>:<small>Your answer: <em>{w.answer||"—"}</em><i>Correct: <u>{mode==="E → C"?w.zh:w.en}</u></i></small>}</p></div>)}</div>
     <div className="result-actions"><button onClick={done}>Done</button>{wrong+skipped>0&&<button className="primary" onClick={retry}>Practice {wrong+skipped} Again</button>}</div>
   </div>
 }
 
-function Journal({go,sessions}:{go:(s:Screen)=>void;sessions:Session[]}){return <div className="page journal"><Status/><div className="year"><IconButton onClick={()=>go("home")} label="Back"><ArrowLeft/></IconButton><h1>2026</h1><Search/></div>
+function Journal({go,sessions}:{go:(s:Screen)=>void;sessions:Session[]}){return <div className="page journal"><div className="year"><IconButton onClick={()=>go("home")} label="Back"><ArrowLeft/></IconButton><h1>2026</h1><Search/></div>
   {sessions.length===0?<div className="empty-journal">No practice records yet</div>:sessions.map(session=>{
     const roundNumbers=Array.from(new Set(session.attempts.map(a=>a.round??1))).sort((a,b)=>a-b);
     const firstRound=session.attempts.filter(a=>(a.round??1)===1);
