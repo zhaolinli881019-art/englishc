@@ -16,6 +16,7 @@ body{overscroll-behavior:none}
 .phone{width:min(430px,100vw);height:100dvh;max-height:100dvh;overflow:hidden}
 .page{height:100%;min-height:0;padding-top:max(74px,calc(env(safe-area-inset-top) + 62px));padding-bottom:max(78px,calc(env(safe-area-inset-bottom) + 66px));overflow:hidden}
 .home,.quiz{overflow:hidden}
+.home{touch-action:pan-y;overscroll-behavior-x:none}
 .import,.character,.result,.journal{overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch}
 .quiz{padding-bottom:max(78px,calc(env(safe-area-inset-bottom) + 66px))}
 .import-card{bottom:max(80px,calc(env(safe-area-inset-bottom) + 68px))}

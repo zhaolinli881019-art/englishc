@@ -34,6 +34,10 @@ const results: Word[] = [
 ];
 const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
 
+function readStored<T>(key:string,fallback:T):T{
+  try{const value=localStorage.getItem(key);return value?JSON.parse(value) as T:fallback}catch{return fallback}
+}
+
 export function App(){
   const [screen,setScreen]=useState<Screen>("home");
   const [mode,setMode]=useState<Mode>("Dictation");
@@ -43,13 +47,15 @@ export function App(){
   const [question,setQuestion]=useState(1);
   const [reviewOnly,setReviewOnly]=useState(false);
   const [pendingWords,setPendingWords]=useState<ImportedWord[]>([]);
-  const [importedWords,setImportedWords]=useState<ImportedWord[]>([]);
+  const [importedWords,setImportedWords]=useState<ImportedWord[]>(()=>readStored("englishc.words",[]));
   const [fileName,setFileName]=useState("");
   const [importError,setImportError]=useState("");
   const [activeWords,setActiveWords]=useState<ImportedWord[]>([]);
   const [attempts,setAttempts]=useState<Attempt[]>([]);
   const [round,setRound]=useState(1);
-  const [sessions,setSessions]=useState<Session[]>([]);
+  const [sessions,setSessions]=useState<Session[]>(()=>readStored<Session[]>("englishc.sessions",[]).map(session=>({...session,character:characters.find(character=>character.name===session.character?.name)??characters[0]})));
+  useEffect(()=>{localStorage.setItem("englishc.words",JSON.stringify(importedWords))},[importedWords]);
+  useEffect(()=>{localStorage.setItem("englishc.sessions",JSON.stringify(sessions))},[sessions]);
   const chosen=characters[selected];
   const go=(s:Screen)=>setScreen(s);
   return <main className="stage"><section className="phone">
@@ -65,7 +71,7 @@ export function App(){
 function IconButton({children,onClick,label}:{children:React.ReactNode,onClick:()=>void,label:string}){return <button className="icon" onClick={onClick} aria-label={label}>{children}</button>}
 
 function Home({mode,setMode,go,importedWords,sessions,selectDay,onFile,importError,setImportError}:{mode:Mode;setMode:(m:Mode)=>void;go:(s:Screen)=>void;importedWords:ImportedWord[];sessions:Session[];selectDay:(d:number)=>void;onFile:(w:ImportedWord[],name:string)=>void;importError:string;setImportError:(s:string)=>void}){
-  const swipeStart=useRef<number|null>(null);
+  const swipeStart=useRef<{x:number;y:number}|null>(null);
   const [menuOpen,setMenuOpen]=useState(false);
   const [monthPicker,setMonthPicker]=useState(false);
   const [year,setYear]=useState(2026);
@@ -104,7 +110,7 @@ function Home({mode,setMode,go,importedWords,sessions,selectDay,onFile,importErr
   };
   const importedDays=new Set(availableDays);
   const completedByDay=new Map(sessions.filter(s=>s.date.startsWith(`${year}-${String(month+1).padStart(2,"0")}`)).map(s=>[Number(s.date.slice(-2)),s.character]));
-  return <div className="page home" onPointerDown={e=>{swipeStart.current=e.clientX}} onPointerUp={e=>{if(swipeStart.current!==null&&e.clientX-swipeStart.current>70)go("journal");swipeStart.current=null}}><div className="top"><button className="home-menu-toggle" onClick={()=>setMenuOpen(!menuOpen)} aria-expanded={menuOpen} aria-label={menuOpen?"Collapse test modes":"Expand test modes"}><House/>{menuOpen?<ChevronUp/>:<ChevronDown/>}</button><IconButton onClick={()=>{}} label="Settings"><Settings/></IconButton></div>
+  return <div className="page home" onPointerDown={e=>{swipeStart.current={x:e.clientX,y:e.clientY}}} onPointerCancel={()=>{swipeStart.current=null}} onPointerUp={e=>{const start=swipeStart.current;swipeStart.current=null;if(!start)return;const dx=e.clientX-start.x,dy=e.clientY-start.y;if(dx>65&&Math.abs(dx)>Math.abs(dy)*1.25)go("journal")}}><div className="top"><button className="home-menu-toggle" onClick={()=>setMenuOpen(!menuOpen)} aria-expanded={menuOpen} aria-label={menuOpen?"Collapse test modes":"Expand test modes"}><House/>{menuOpen?<ChevronUp/>:<ChevronDown/>}</button><IconButton onClick={()=>{}} label="Settings"><Settings/></IconButton></div>
     {menuOpen&&<div className="mode">{(["Dictation","C → E","E → C"] as Mode[]).map(m=><button className={mode===m?"on":""} onClick={()=>{setMode(m);setMenuOpen(false)}} key={m}>{m}</button>)}</div>}
     <button className="month" onClick={()=>setMonthPicker(true)}><small>{year}</small><h1>{months[month]==="SEP"?"SEPTEMBER":months[month]==="OCT"?"OCTOBER":months[month]==="NOV"?"NOVEMBER":months[month]==="DEC"?"DECEMBER":months[month]==="JAN"?"JANUARY":months[month]==="FEB"?"FEBRUARY":months[month]==="MAR"?"MARCH":months[month]==="APR"?"APRIL":months[month]==="JUN"?"JUNE":months[month]==="JUL"?"JULY":months[month]==="MAY"?"MAY":"AUGUST"}</h1></button>
     <div className="calendar">{calendarCells.map((d,index)=>d===null?<span className="calendar-blank" key={`blank-${index}`}/>:<button key={d} onClick={()=>importedDays.has(d)&&setSelectedDay(d)} className={`${d===today?"today":""} ${index%7===0?"sun":""} ${index%7===6?"sat":""} ${isCurrentMonth&&today!==null&&d>today&&!importedDays.has(d)?"future":""} ${importedDays.has(d)&&!completedByDay.has(d)?"has-words":""} ${selectedDay===d&&importedDays.has(d)?"selected-day":""}`}>
