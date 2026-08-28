@@ -14,10 +14,10 @@ html,body,#root{width:100%;height:100%;min-height:0;overflow:hidden}
 body{overscroll-behavior:none}
 .stage{width:100%;height:100dvh;min-height:0;padding:0;overflow:hidden}
 .phone{width:min(430px,100vw);height:100dvh;max-height:100dvh;overflow:hidden}
-.page{height:100%;min-height:0;padding-top:max(24px,calc(env(safe-area-inset-top) + 12px));padding-bottom:max(28px,calc(env(safe-area-inset-bottom) + 16px));overflow:hidden}
+.page{height:100%;min-height:0;padding-top:max(74px,calc(env(safe-area-inset-top) + 62px));padding-bottom:max(78px,calc(env(safe-area-inset-bottom) + 66px));overflow:hidden}
 .home,.quiz{overflow:hidden}
 .import,.character,.result,.journal{overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch}
-.quiz{padding-bottom:max(28px,calc(env(safe-area-inset-bottom) + 16px))}
-.import-card{bottom:max(30px,calc(env(safe-area-inset-bottom) + 18px))}
-.result-actions{bottom:max(20px,calc(env(safe-area-inset-bottom) + 12px))}
+.quiz{padding-bottom:max(78px,calc(env(safe-area-inset-bottom) + 66px))}
+.import-card{bottom:max(80px,calc(env(safe-area-inset-bottom) + 68px))}
+.result-actions{bottom:max(70px,calc(env(safe-area-inset-bottom) + 62px))}
 @media(min-width:451px){.stage{padding:18px}.phone{height:min(932px,calc(100dvh - 36px));max-height:calc(100dvh - 36px)}}
