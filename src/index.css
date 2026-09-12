@@ -11,10 +11,11 @@
 /* iOS supplies the real status bar. Keep the app within the visible iPhone
    viewport and scroll only screens whose content can genuinely be long. */
 html,body,#root{width:100%;height:100%;min-height:0;overflow:hidden}
-body{overscroll-behavior:none}
-.stage{width:100%;height:100dvh;min-height:0;padding:0;overflow:hidden}
-.phone{width:min(430px,100vw);height:100dvh;max-height:100dvh;overflow:hidden}
-.page{height:100%;min-height:0;padding-top:max(74px,calc(env(safe-area-inset-top) + 62px));padding-bottom:max(78px,calc(env(safe-area-inset-bottom) + 66px));overflow:hidden}
+body{position:fixed;inset:0;overscroll-behavior:none}
+#root{position:fixed;inset:0}
+.stage{width:100%;height:100%;min-height:0;padding:0;overflow:hidden}
+.phone{width:min(430px,100vw);height:100%;max-height:100%;overflow:hidden}
+.page{position:absolute;inset:0;height:auto;max-height:100%;min-height:0;padding-top:max(74px,calc(env(safe-area-inset-top) + 62px));padding-bottom:max(78px,calc(env(safe-area-inset-bottom) + 66px));overflow:hidden}
 .home,.quiz{overflow:hidden}
 .home{touch-action:pan-y;overscroll-behavior-x:none}
 .home .month{margin-top:55px}
@@ -25,4 +26,4 @@ body{overscroll-behavior:none}
 .quiz{padding-bottom:max(78px,calc(env(safe-area-inset-bottom) + 66px))}
 .import-card{bottom:max(80px,calc(env(safe-area-inset-bottom) + 68px))}
 .result-actions{bottom:max(70px,calc(env(safe-area-inset-bottom) + 62px))}
-@media(min-width:451px){.stage{padding:18px}.phone{height:min(932px,calc(100dvh - 36px));max-height:calc(100dvh - 36px)}}
+@media(min-width:451px){.stage{padding:18px}.phone{height:min(932px,calc(100% - 36px));max-height:calc(100% - 36px)}}
