@@ -33,6 +33,11 @@ const results: Word[] = [
   {en:"knowledge",zh:"知识",answer:"—",status:"skip"},{en:"library",zh:"图书馆",answer:"library",status:"correct"}
 ];
 const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+const fullMonths = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
+
+function localDateKey(date=new Date()){
+  return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
+}
 
 function readStored<T>(key:string,fallback:T):T{
   try{const value=localStorage.getItem(key);return value?JSON.parse(value) as T:fallback}catch{return fallback}
@@ -63,7 +68,7 @@ export function App(){
     {screen==="import"&&<Import allocation={allocation} setAllocation={setAllocation} go={go} words={pendingWords} fileName={fileName} confirm={(words)=>{setImportedWords(words);setImportError("");go("home")}}/>}
     {screen==="character"&&<Characters selected={selected} setSelected={setSelected} go={go}/>}
     {screen==="quiz"&&<Quiz mode={mode} chosen={chosen} answer={answer} setAnswer={setAnswer} question={question} setQuestion={setQuestion} go={go} reviewOnly={reviewOnly} round={round} words={activeWords} attempts={attempts} setAttempts={setAttempts}/>}
-    {screen==="result"&&<Result chosen={chosen} mode={mode} go={go} round={round} attempts={attempts} done={()=>{const date=attempts[0]?.date??"2026-08-12";setSessions(current=>[{id:Date.now(),mode,character:chosen,attempts:[...attempts],date},...current]);go("journal")}} retry={()=>{const missed=attempts.filter(a=>a.round===round&&a.status!=="correct").map(({en,zh,date})=>({en,zh,date}));setActiveWords(missed);setRound(r=>r+1);setReviewOnly(true);setQuestion(1);setAnswer("");go("quiz")}}/>}
+    {screen==="result"&&<Result chosen={chosen} mode={mode} go={go} round={round} attempts={attempts} done={()=>{const date=attempts[0]?.date??localDateKey();setSessions(current=>[{id:Date.now(),mode,character:chosen,attempts:[...attempts],date},...current]);go("journal")}} retry={()=>{const missed=attempts.filter(a=>a.round===round&&a.status!=="correct").map(({en,zh,date})=>({en,zh,date}));setActiveWords(missed);setRound(r=>r+1);setReviewOnly(true);setQuestion(1);setAnswer("");go("quiz")}}/>}
     {screen==="journal"&&<Journal go={go} sessions={sessions}/>}
   </section></main>
 }
@@ -74,9 +79,9 @@ function Home({mode,setMode,go,importedWords,sessions,selectDate,onFile,importEr
   const swipeStart=useRef<{x:number;y:number}|null>(null);
   const [menuOpen,setMenuOpen]=useState(false);
   const [monthPicker,setMonthPicker]=useState(false);
-  const [year,setYear]=useState(2026);
-  const [month,setMonth]=useState(7);
   const currentDate=new Date();
+  const [year,setYear]=useState(()=>currentDate.getFullYear());
+  const [month,setMonth]=useState(()=>currentDate.getMonth());
   const isCurrentMonth=year===currentDate.getFullYear()&&month===currentDate.getMonth();
   const today=isCurrentMonth?currentDate.getDate():null;
   const dayCount=new Date(year,month+1,0).getDate();
@@ -123,7 +128,7 @@ function Home({mode,setMode,go,importedWords,sessions,selectDate,onFile,importEr
   const completedByDay=new Map(sessions.filter(s=>s.date.startsWith(`${year}-${String(month+1).padStart(2,"0")}`)).map(s=>[Number(s.date.slice(-2)),s.character]));
   return <div className="page home" onPointerDown={e=>{swipeStart.current={x:e.clientX,y:e.clientY}}} onPointerCancel={()=>{swipeStart.current=null}} onPointerUp={e=>{const start=swipeStart.current;swipeStart.current=null;if(!start)return;const dx=e.clientX-start.x,dy=e.clientY-start.y;if(dx>65&&Math.abs(dx)>Math.abs(dy)*1.25)go("journal")}}><div className="top"><button className="home-menu-toggle" onClick={()=>setMenuOpen(!menuOpen)} aria-expanded={menuOpen} aria-label={menuOpen?"Collapse test modes":"Expand test modes"}><House/>{menuOpen?<ChevronUp/>:<ChevronDown/>}</button><IconButton onClick={()=>{}} label="Settings"><Settings/></IconButton></div>
     {menuOpen&&<div className="mode">{(["Dictation","C → E","E → C"] as Mode[]).map(m=><button className={mode===m?"on":""} onClick={()=>{setMode(m);setMenuOpen(false)}} key={m}>{m}</button>)}</div>}
-    <button className="month" onClick={()=>setMonthPicker(true)}><small>{year}</small><h1>{months[month]==="SEP"?"SEPTEMBER":months[month]==="OCT"?"OCTOBER":months[month]==="NOV"?"NOVEMBER":months[month]==="DEC"?"DECEMBER":months[month]==="JAN"?"JANUARY":months[month]==="FEB"?"FEBRUARY":months[month]==="MAR"?"MARCH":months[month]==="APR"?"APRIL":months[month]==="JUN"?"JUNE":months[month]==="JUL"?"JULY":months[month]==="MAY"?"MAY":"AUGUST"}</h1></button>
+    <button className="month" onClick={()=>setMonthPicker(true)}><small>{year}</small><h1>{fullMonths[month]}</h1></button>
     <div className="calendar">{calendarCells.map((d,index)=>d===null?<span className="calendar-blank" key={`blank-${index}`}/>:<button key={d} onClick={()=>importedDays.has(d)&&setSelectedDay(d)} className={`${d===today?"today":""} ${index%7===0?"sun":""} ${index%7===6?"sat":""} ${isCurrentMonth&&today!==null&&d>today&&!importedDays.has(d)?"future":""} ${importedDays.has(d)&&!completedByDay.has(d)?"has-words":""} ${selectedDay===d&&importedDays.has(d)?"selected-day":""}`}>
       {completedByDay.has(d)?<img src={completedByDay.get(d)!.src}/>:d}
     </button>)}</div>
@@ -136,17 +141,19 @@ function Home({mode,setMode,go,importedWords,sessions,selectDate,onFile,importEr
 
 function Import({allocation,setAllocation,go,words,fileName,confirm}:{allocation:Allocation;setAllocation:(a:Allocation)=>void;go:(s:Screen)=>void;words:ImportedWord[];fileName:string;confirm:(w:ImportedWord[])=>void}){
   const dated=words.filter(w=>w.date); const undated=words.filter(w=>!w.date);
+  const todayKey=localDateKey();
   const groups=Object.entries(dated.reduce<Record<string,number>>((a,w)=>{a[w.date!]=(a[w.date!]||0)+1;return a},{})).sort(([a],[b])=>a.localeCompare(b));
   const displayDate=(s:string)=>new Date(`${s}T00:00:00`).toLocaleDateString("en-US",{month:"short",day:"numeric"});
   const finalized=()=>{
     if(!undated.length)return words;
-    const start=new Date("2026-08-12T00:00:00");
-    return words.map((w,i)=>{if(w.date)return w;if(allocation==="today")return {...w,date:"2026-08-12"};const d=new Date(start);d.setDate(start.getDate()+Math.floor(i/10));return {...w,date:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}})
+    const start=new Date(`${todayKey}T00:00:00`);
+    let undatedIndex=0;
+    return words.map(w=>{if(w.date)return w;if(allocation==="today")return {...w,date:todayKey};const d=new Date(start);d.setDate(start.getDate()+Math.floor(undatedIndex++/10));return {...w,date:localDateKey(d)}})
   };
   return <div className="page import"><div className="nav"><IconButton onClick={()=>go("home")} label="Back"><ArrowLeft/></IconButton><h2>Confirm Import</h2><i/></div>
     <img className="hero" src={hornet}/><h1>{words.length} Words Found</h1><p className="file-name">{fileName}</p>{undated.length>0&&<><h3>{undated.length} Undated Words</h3>
     <div className="segments"><button className={allocation==="today"?"on":""} onClick={()=>setAllocation("today")}>All Today</button><button className={allocation==="split"?"on":""} onClick={()=>setAllocation("split")}>Split by Day</button></div>
-    {allocation==="split"&&<div className="split-row"><button>10 words / day</button><button>Starting Aug 12</button></div>}</>}
+    {allocation==="split"&&<div className="split-row"><button>10 words / day</button><button>Starting {displayDate(todayKey)}</button></div>}</>}
     <div className="date-rows">{groups.slice(0,3).map(([date,count])=><p key={date}>▣　 {displayDate(date)} <b>{count}</b></p>)}{groups.length>3&&<p className="more">▣　 {groups.length-3} More Dates <b>{groups.slice(3).reduce((n,[,c])=>n+c,0)}</b></p>}</div>
     <h3 className="preview-title">Word Preview</h3><div className="preview">{words.slice(0,3).map(w=><p key={w.en}>{w.en} <span>{w.zh}</span><i>{w.date?displayDate(w.date):"No date"}</i></p>)}</div>
     <p className="note">ⓘ　{undated.length?"Blank dates follow your choice above":"All dates were recognized successfully"}</p><button className="primary" onClick={()=>confirm(finalized())}>Import {words.length} Words</button>
@@ -210,14 +217,15 @@ function Result({chosen,mode,go,retry,done,attempts,round}:{chosen:Character;mod
   const shown=attempts.filter(a=>a.round===round);
   const correct=shown.filter(a=>a.status==="correct").length, wrong=shown.filter(a=>a.status==="wrong").length, skipped=shown.filter(a=>a.status==="skip").length;
   const accuracy=shown.length?correct/shown.length*100:0;
-  return <div className="page result"><div className="nav"><IconButton onClick={()=>go("home")} label="Back"><ArrowLeft/></IconButton><h2>{mode} Result<small>Aug 12, 2026</small></h2><IconButton onClick={()=>go("journal")} label="Search"><Search/></IconButton></div>
+  const resultDate=new Date(`${shown[0]?.date??localDateKey()}T00:00:00`).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+  return <div className="page result"><div className="nav"><IconButton onClick={()=>go("home")} label="Back"><ArrowLeft/></IconButton><h2>{mode} Result<small>{resultDate}</small></h2><IconButton onClick={()=>go("journal")} label="Search"><Search/></IconButton></div>
     <div className="summary"><img src={chosen.src}/><p>{shown.length} words · {correct} correct · {wrong} wrong · {skipped} unanswered<br/>Accuracy　<strong>{accuracy.toFixed(1)}%</strong></p></div><h3>{round===1?"All Words":`Review Round ${round-1}`}</h3>
     <div className="word-list">{shown.map((w,i)=><div className="word" key={`${w.en}-${i}`}><b className={w.status}>{w.status==="correct"?"✓":w.status==="wrong"?"×":"−"}</b><p><strong>{i+1}. {w.en}</strong>{w.status==="correct"?<small>Correct</small>:<small>Your answer: <em>{w.answer||"—"}</em><i>Correct: <u>{mode==="E → C"?w.zh:w.en}</u></i></small>}</p></div>)}</div>
     <div className="result-actions"><button onClick={done}>Done</button>{wrong+skipped>0&&<button className="primary" onClick={retry}>Practice {wrong+skipped} Again</button>}</div>
   </div>
 }
 
-function Journal({go,sessions}:{go:(s:Screen)=>void;sessions:Session[]}){return <div className="page journal"><div className="year"><IconButton onClick={()=>go("home")} label="Back"><ArrowLeft/></IconButton><h1>2026</h1><Search/></div>
+function Journal({go,sessions}:{go:(s:Screen)=>void;sessions:Session[]}){const journalYear=sessions[0]?.date?.slice(0,4)??String(new Date().getFullYear());return <div className="page journal"><div className="year"><IconButton onClick={()=>go("home")} label="Back"><ArrowLeft/></IconButton><h1>{journalYear}</h1><Search/></div>
   {sessions.length===0?<div className="empty-journal">No practice records yet</div>:sessions.map(session=>{
     const roundNumbers=Array.from(new Set(session.attempts.map(a=>a.round??1))).sort((a,b)=>a-b);
     const firstRound=session.attempts.filter(a=>(a.round??1)===1);
