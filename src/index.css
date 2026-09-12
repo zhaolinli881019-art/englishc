@@ -22,8 +22,11 @@ body{position:fixed;inset:0;overscroll-behavior:none}
 .home .calendar{margin-top:28px}
 .home .calendar button{height:47px}
 .home .start-area{position:absolute;left:18px;right:18px;bottom:max(158px,calc(env(safe-area-inset-bottom) + 146px));margin-top:0;z-index:2}
-.import,.character,.result,.journal{overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch}
+.import,.character,.journal{overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch}
+.result{display:flex;flex-direction:column;overflow:hidden}
+.result .nav,.result .summary,.result>h3,.result .result-actions{flex:0 0 auto}
+.result .word-list{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;padding-bottom:12px}
 .quiz{padding-bottom:max(78px,calc(env(safe-area-inset-bottom) + 66px))}
 .import-card{bottom:max(80px,calc(env(safe-area-inset-bottom) + 68px))}
-.result-actions{bottom:max(70px,calc(env(safe-area-inset-bottom) + 62px))}
+.result-actions{position:static;margin-top:10px;padding:8px 0;background:#fdfcf9}
 @media(min-width:451px){.stage{padding:18px}.phone{height:min(932px,calc(100% - 36px));max-height:calc(100% - 36px)}}
