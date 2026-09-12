@@ -59,7 +59,7 @@ export function App(){
   const chosen=characters[selected];
   const go=(s:Screen)=>setScreen(s);
   return <main className="stage"><section className="phone">
-    {screen==="home"&&<Home mode={mode} setMode={setMode} go={go} importedWords={importedWords} sessions={sessions} selectDay={(day)=>{const date=`2026-08-${String(day).padStart(2,"0")}`;setActiveWords(importedWords.filter(w=>w.date===date));setQuestion(1);setRound(1);setAnswer("");setAttempts([]);setReviewOnly(false);go("character")}} onFile={(words,name)=>{setPendingWords(words);setFileName(name);setImportError("");go("import")}} importError={importError} setImportError={setImportError}/>}
+    {screen==="home"&&<Home mode={mode} setMode={setMode} go={go} importedWords={importedWords} sessions={sessions} selectDate={(date)=>{setActiveWords(importedWords.filter(w=>w.date===date));setQuestion(1);setRound(1);setAnswer("");setAttempts([]);setReviewOnly(false);go("character")}} onFile={(words,name)=>{setPendingWords(words);setFileName(name);setImportError("");go("import")}} importError={importError} setImportError={setImportError}/>} 
     {screen==="import"&&<Import allocation={allocation} setAllocation={setAllocation} go={go} words={pendingWords} fileName={fileName} confirm={(words)=>{setImportedWords(words);setImportError("");go("home")}}/>}
     {screen==="character"&&<Characters selected={selected} setSelected={setSelected} go={go}/>}
     {screen==="quiz"&&<Quiz mode={mode} chosen={chosen} answer={answer} setAnswer={setAnswer} question={question} setQuestion={setQuestion} go={go} reviewOnly={reviewOnly} round={round} words={activeWords} attempts={attempts} setAttempts={setAttempts}/>}
@@ -70,7 +70,7 @@ export function App(){
 
 function IconButton({children,onClick,label}:{children:React.ReactNode,onClick:()=>void,label:string}){return <button className="icon" onClick={onClick} aria-label={label}>{children}</button>}
 
-function Home({mode,setMode,go,importedWords,sessions,selectDay,onFile,importError,setImportError}:{mode:Mode;setMode:(m:Mode)=>void;go:(s:Screen)=>void;importedWords:ImportedWord[];sessions:Session[];selectDay:(d:number)=>void;onFile:(w:ImportedWord[],name:string)=>void;importError:string;setImportError:(s:string)=>void}){
+function Home({mode,setMode,go,importedWords,sessions,selectDate,onFile,importError,setImportError}:{mode:Mode;setMode:(m:Mode)=>void;go:(s:Screen)=>void;importedWords:ImportedWord[];sessions:Session[];selectDate:(date:string)=>void;onFile:(w:ImportedWord[],name:string)=>void;importError:string;setImportError:(s:string)=>void}){
   const swipeStart=useRef<{x:number;y:number}|null>(null);
   const [menuOpen,setMenuOpen]=useState(false);
   const [monthPicker,setMonthPicker]=useState(false);
@@ -84,6 +84,17 @@ function Home({mode,setMode,go,importedWords,sessions,selectDay,onFile,importErr
   const calendarCells=[...Array.from({length:leadingBlanks},()=>null),...Array.from({length:dayCount},(_,i)=>i+1)];
   const availableDays=Array.from(new Set(importedWords.filter(w=>w.date?.startsWith(`${year}-${String(month+1).padStart(2,"0")}`)).map(w=>Number(w.date!.slice(-2))))).sort((a,b)=>a-b);
   const [selectedDay,setSelectedDay]=useState<number|null>(today&&availableDays.includes(today)?today:(availableDays[0]??null));
+  useEffect(()=>{
+    const firstDate=importedWords.map(w=>w.date).filter((date):date is string=>Boolean(date)).sort()[0];
+    if(!firstDate){setSelectedDay(null);return}
+    const [nextYear,nextMonth,nextDay]=firstDate.split("-").map(Number);
+    setYear(nextYear);
+    setMonth(nextMonth-1);
+    setSelectedDay(nextDay);
+  },[importedWords]);
+  useEffect(()=>{
+    setSelectedDay(current=>current&&availableDays.includes(current)?current:(availableDays[0]??null));
+  },[year,month,importedWords]);
   const fileRef=useRef<HTMLInputElement>(null);
   const readFile=async(file?:File)=>{
     if(!file)return;
@@ -116,7 +127,7 @@ function Home({mode,setMode,go,importedWords,sessions,selectDay,onFile,importErr
     <div className="calendar">{calendarCells.map((d,index)=>d===null?<span className="calendar-blank" key={`blank-${index}`}/>:<button key={d} onClick={()=>importedDays.has(d)&&setSelectedDay(d)} className={`${d===today?"today":""} ${index%7===0?"sun":""} ${index%7===6?"sat":""} ${isCurrentMonth&&today!==null&&d>today&&!importedDays.has(d)?"future":""} ${importedDays.has(d)&&!completedByDay.has(d)?"has-words":""} ${selectedDay===d&&importedDays.has(d)?"selected-day":""}`}>
       {completedByDay.has(d)?<img src={completedByDay.get(d)!.src}/>:d}
     </button>)}</div>
-    <div className="start-area">{selectedDay&&importedDays.has(selectedDay)?<><small>{month+1}/{selectedDay} · {importedWords.filter(w=>w.date===`${year}-${String(month+1).padStart(2,"0")}-${String(selectedDay).padStart(2,"0")}`).length} words</small><button onClick={()=>selectDay(selectedDay)}>Start</button></>:<small>Select a highlighted date</small>}</div>
+    <div className="start-area">{selectedDay&&importedDays.has(selectedDay)?<><small>{month+1}/{selectedDay} · {importedWords.filter(w=>w.date===`${year}-${String(month+1).padStart(2,"0")}-${String(selectedDay).padStart(2,"0")}`).length} words</small><button onClick={()=>selectDate(`${year}-${String(month+1).padStart(2,"0")}-${String(selectedDay).padStart(2,"0")}`)}>Start</button></>:<small>Select a highlighted date</small>}</div>
     {importError&&<div className="import-error">{importError}<button onClick={()=>setImportError("")}>×</button></div>}
     <input ref={fileRef} className="file-input" type="file" accept=".xlsx,.xls,.csv" onChange={e=>readFile(e.target.files?.[0])}/><button className="import-card" onClick={()=>fileRef.current?.click()}><span><Upload/></span><label>Import Word List<small>Excel / CSV</small></label><ChevronRight/></button>
     {monthPicker&&<div className="month-overlay" onClick={()=>setMonthPicker(false)}><section className="month-picker" onClick={e=>e.stopPropagation()}><header><button onClick={()=>setYear(year-1)}>‹</button><b>{year}</b><button onClick={()=>setYear(year+1)}>›</button></header><div>{months.map((m,i)=><button key={m} className={month===i?"selected":""} onClick={()=>{setMonth(i);setMonthPicker(false)}}><b>{i+1}</b><small>{m}</small></button>)}</div></section></div>}
