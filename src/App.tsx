@@ -77,6 +77,13 @@ function IconButton({children,onClick,label}:{children:React.ReactNode,onClick:(
 
 function Home({mode,setMode,go,importedWords,sessions,selectDate,onFile,importError,setImportError}:{mode:Mode;setMode:(m:Mode)=>void;go:(s:Screen)=>void;importedWords:ImportedWord[];sessions:Session[];selectDate:(date:string)=>void;onFile:(w:ImportedWord[],name:string)=>void;importError:string;setImportError:(s:string)=>void}){
   const swipeStart=useRef<{x:number;y:number}|null>(null);
+  const finishSwipe=(x:number,y:number)=>{
+    const start=swipeStart.current;
+    swipeStart.current=null;
+    if(!start)return;
+    const dx=x-start.x,dy=y-start.y;
+    if(dx>55&&Math.abs(dx)>Math.abs(dy)*1.2)go("journal");
+  };
   const [menuOpen,setMenuOpen]=useState(false);
   const [monthPicker,setMonthPicker]=useState(false);
   const currentDate=new Date();
@@ -126,7 +133,7 @@ function Home({mode,setMode,go,importedWords,sessions,selectDate,onFile,importEr
   };
   const importedDays=new Set(availableDays);
   const completedByDay=new Map(sessions.filter(s=>s.date.startsWith(`${year}-${String(month+1).padStart(2,"0")}`)).map(s=>[Number(s.date.slice(-2)),s.character]));
-  return <div className="page home" onPointerDown={e=>{swipeStart.current={x:e.clientX,y:e.clientY}}} onPointerCancel={()=>{swipeStart.current=null}} onPointerUp={e=>{const start=swipeStart.current;swipeStart.current=null;if(!start)return;const dx=e.clientX-start.x,dy=e.clientY-start.y;if(dx>65&&Math.abs(dx)>Math.abs(dy)*1.25)go("journal")}}><div className="top"><button className="home-menu-toggle" onClick={()=>setMenuOpen(!menuOpen)} aria-expanded={menuOpen} aria-label={menuOpen?"Collapse test modes":"Expand test modes"}><House/>{menuOpen?<ChevronUp/>:<ChevronDown/>}</button><IconButton onClick={()=>{}} label="Settings"><Settings/></IconButton></div>
+  return <div className="page home" onTouchStart={e=>{const touch=e.touches[0];swipeStart.current={x:touch.clientX,y:touch.clientY}}} onTouchMove={e=>{const start=swipeStart.current,touch=e.touches[0];if(start&&touch&&touch.clientX-start.x>12&&Math.abs(touch.clientX-start.x)>Math.abs(touch.clientY-start.y))e.preventDefault()}} onTouchCancel={()=>{swipeStart.current=null}} onTouchEnd={e=>{const touch=e.changedTouches[0];if(touch)finishSwipe(touch.clientX,touch.clientY)}}><div className="top"><button className="home-menu-toggle" onClick={()=>setMenuOpen(!menuOpen)} aria-expanded={menuOpen} aria-label={menuOpen?"Collapse test modes":"Expand test modes"}><House/>{menuOpen?<ChevronUp/>:<ChevronDown/>}</button><IconButton onClick={()=>{}} label="Settings"><Settings/></IconButton></div>
     {menuOpen&&<div className="mode">{(["Dictation","C → E","E → C"] as Mode[]).map(m=><button className={mode===m?"on":""} onClick={()=>{setMode(m);setMenuOpen(false)}} key={m}>{m}</button>)}</div>}
     <button className="month" onClick={()=>setMonthPicker(true)}><small>{year}</small><h1>{fullMonths[month]}</h1></button>
     <div className="calendar">{calendarCells.map((d,index)=>d===null?<span className="calendar-blank" key={`blank-${index}`}/>:<button key={d} onClick={()=>importedDays.has(d)&&setSelectedDay(d)} className={`${d===today?"today":""} ${index%7===0?"sun":""} ${index%7===6?"sat":""} ${isCurrentMonth&&today!==null&&d>today&&!importedDays.has(d)?"future":""} ${importedDays.has(d)&&!completedByDay.has(d)?"has-words":""} ${selectedDay===d&&importedDays.has(d)?"selected-day":""}`}>
