@@ -1,4 +1,4 @@
-const CACHE_NAME = "englishc-shell-v6";
+const CACHE_NAME = "englishc-shell-v7";
 
 self.addEventListener("install", () => self.skipWaiting());
 

@@ -118,7 +118,6 @@ function Home({mode,setMode,go,importedWords,sessions,selectDay,onFile,importErr
     </button>)}</div>
     <div className="start-area">{selectedDay&&importedDays.has(selectedDay)?<><small>{month+1}/{selectedDay} · {importedWords.filter(w=>w.date===`${year}-${String(month+1).padStart(2,"0")}-${String(selectedDay).padStart(2,"0")}`).length} words</small><button onClick={()=>selectDay(selectedDay)}>Start</button></>:<small>Select a highlighted date</small>}</div>
     {importError&&<div className="import-error">{importError}<button onClick={()=>setImportError("")}>×</button></div>}
-    {importedWords.length>0&&<div className="import-success">✓ {importedWords.length} words imported</div>}
     <input ref={fileRef} className="file-input" type="file" accept=".xlsx,.xls,.csv" onChange={e=>readFile(e.target.files?.[0])}/><button className="import-card" onClick={()=>fileRef.current?.click()}><span><Upload/></span><label>Import Word List<small>Excel / CSV</small></label><ChevronRight/></button>
     {monthPicker&&<div className="month-overlay" onClick={()=>setMonthPicker(false)}><section className="month-picker" onClick={e=>e.stopPropagation()}><header><button onClick={()=>setYear(year-1)}>‹</button><b>{year}</b><button onClick={()=>setYear(year+1)}>›</button></header><div>{months.map((m,i)=><button key={m} className={month===i?"selected":""} onClick={()=>{setMonth(i);setMonthPicker(false)}}><b>{i+1}</b><small>{m}</small></button>)}</div></section></div>}
   </div>
