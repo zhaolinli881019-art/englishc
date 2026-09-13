@@ -22,7 +22,15 @@ body{position:fixed;inset:0;overscroll-behavior:none}
 .home .calendar{margin-top:28px}
 .home .calendar button{height:47px}
 .home .start-area{position:absolute;left:18px;right:18px;bottom:max(158px,calc(env(safe-area-inset-bottom) + 146px));margin-top:0;z-index:2}
-.import,.character,.journal{overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch}
+.import,.journal{overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch}
+.character{display:flex;flex-direction:column;overflow:hidden}
+.character .top{flex:0 0 auto}
+.character h1{flex:0 0 auto;margin:24px 0 20px;font-size:24px}
+.character .characters{flex:1 1 auto;min-height:0;grid-template-rows:repeat(4,minmax(0,1fr));gap:8px 5px}
+.character .characters button{height:auto;min-height:0}
+.character .characters img{width:min(92px,100%);height:min(92px,100%)}
+.character .characters b{right:7px;top:1px}
+.character .next{flex:0 0 auto;font-size:42px;line-height:1;margin:10px auto 0}
 .result{display:flex;flex-direction:column;overflow:hidden}
 .result .nav,.result .summary,.result>h3,.result .result-actions{flex:0 0 auto}
 .result .word-list{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;padding-bottom:12px}
